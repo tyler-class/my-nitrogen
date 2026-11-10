@@ -24,21 +24,21 @@
   "d1_databases": [
     {
       // No database_id: the Deploy button and `wrangler deploy` provision it automatically.
-      "binding": "DB",
+      "binding": "DB", "database_id": "e8a2eec2-4497-4659-83e5-215910fb0f7e",
       "database_name": "my-nitrogen",
-      "migrations_dir": "migrations","database_id": "e8a2eec2-4497-4659-83e5-215910fb0f7e",
+      "migrations_dir": "migrations",
     },
   ],
   "r2_buckets": [
     {
       // Images added to pages. No bucket_name: provisioned automatically on deploy.
-      "binding": "FILES","bucket_name": "my-nitrogen","preview_bucket_name": "my-nitrogen",
+      "binding": "FILES", "bucket_name": "my-nitrogen",
     },
   ],
   "kv_namespaces": [
     {
       // Sign-ins for AI assistants connected over MCP. Provisioned automatically on deploy.
-      "binding": "OAUTH_KV","id": "65cc1216eee8438fba107c94f9bcc6c5",
+      "binding": "OAUTH_KV", "id": "65cc1216eee8438fba107c94f9bcc6c5",
     },
   ],
   // Semantic search. Every account has a "default" namespace, so nothing is provisioned at deploy;
