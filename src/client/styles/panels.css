@@ -1,0 +1,356 @@
+/* Arrangeable panels (Dashboard, Insights). Ported from Ratio. */
+
+.pn-wrap {
+  /* Named: each panel is a container too, so board-width rules must say which they mean. */
+  container: pn-board / inline-size;
+  margin-top: 18px;
+}
+.pn-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-auto-flow: row dense;
+  gap: 12px;
+}
+@container pn-board (min-width: 600px) {
+  .pn-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .pn[data-size='full'] {
+    grid-column: 1 / -1;
+  }
+}
+.pn {
+  min-width: 0;
+  /* Panels lay out their own content by their width, half or full. */
+  container-type: inline-size;
+  border: 1px solid var(--hairline);
+  border-radius: 14px;
+  padding: 14px 18px 18px;
+  background: var(--paper);
+  transition: border-color 0.12s;
+}
+@media (hover: hover) and (pointer: fine) {
+  .pn:hover {
+    border-color: color-mix(in srgb, var(--ink) 16%, var(--hairline));
+  }
+}
+.pn-h {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0 -8px 12px 0;
+}
+.pn-t {
+  flex: 1;
+  min-width: 0;
+  padding-top: 4px;
+}
+.pn-t h3 {
+  margin: 0;
+  font-size: 14.5px;
+  font-weight: 650;
+  letter-spacing: -0.005em;
+}
+.pn-sub {
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 12.5px;
+  line-height: 1.4;
+}
+.pn-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: -2px 0 12px;
+}
+.pn-actions .seg {
+  margin: 0;
+  flex-wrap: nowrap;
+  max-width: 100%;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.pn-actions .seg::-webkit-scrollbar {
+  display: none;
+}
+.pn-actions .seg button {
+  flex: none;
+}
+.pn-grip,
+.pn-tool {
+  flex: none;
+  width: 30px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  color: var(--faint);
+}
+.pn-grip {
+  cursor: grab;
+  touch-action: none;
+}
+.pn-grip:active {
+  cursor: grabbing;
+}
+@media (hover: hover) and (pointer: fine) {
+  .pn-tool:hover,
+  .pn-grip:hover {
+    background: color-mix(in srgb, var(--ink) 6%, transparent);
+    color: var(--ink);
+  }
+}
+.pn-tools {
+  display: flex;
+  gap: 2px;
+  opacity: 0;
+  transition: opacity 0.12s;
+}
+.pn:focus-within .pn-tools {
+  opacity: 1;
+}
+@media (hover: hover) and (pointer: fine) {
+  .pn:hover .pn-tools {
+    opacity: 1;
+  }
+}
+@media (hover: none) {
+  .pn-tools {
+    opacity: 1;
+  }
+}
+/* Width has no effect in one column, so the toggle hides there. */
+.pn-size {
+  display: none;
+}
+@container pn-board (min-width: 600px) {
+  .pn-size {
+    display: inline-flex;
+  }
+}
+.pn-ph {
+  opacity: 0.35;
+  border-style: dashed;
+}
+.pn-overlay {
+  box-shadow: var(--shadow);
+  cursor: grabbing;
+}
+.pn-hidden {
+  margin-top: 20px;
+}
+.pn-hidden summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 14px;
+  margin: 0 2px 8px;
+}
+.pn-hid-list {
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius);
+  padding: 4px 8px 4px 14px;
+}
+.pn-hid-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 4px 0;
+}
+.pn-hid-row + .pn-hid-row {
+  border-top: 1px solid var(--hairline);
+}
+.pn-hid-row span {
+  font-weight: 550;
+}
+
+.pn-actions .seg button {
+  font-size: 12.5px;
+  padding: 3px 10px;
+}
+
+/* ------------------------------------------------------- number tiles */
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+@container (min-width: 520px) {
+  .stats {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .stats.four {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+.stat {
+  border-radius: 10px;
+  padding: 12px 14px;
+  background: var(--sidebar);
+  min-width: 0;
+}
+.stat .v {
+  font-size: 24px;
+  font-weight: 650;
+  line-height: 1.15;
+  letter-spacing: -0.015em;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.stat .l {
+  margin-top: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.stat .d {
+  margin-top: 2px;
+  font-size: 12px;
+  color: var(--faint);
+}
+.pn-empty {
+  margin: 0;
+  padding: 18px 0 6px;
+  text-align: center;
+  color: var(--muted);
+}
+.pn .dash-list li:first-child {
+  padding-top: 0;
+}
+.chart-box {
+  width: 100%;
+  overflow: hidden;
+}
+.chart-box svg {
+  display: block;
+}
+
+/* --------------------------------------------- 0.15: handle on the left */
+
+/* Panels keep their own height; a short one beside a tall one doesn't stretch into a box of
+   empty space. */
+.pn-grid {
+  align-items: start;
+}
+.pn-h {
+  align-items: center;
+  margin: -4px -6px 12px -10px;
+  gap: 4px;
+}
+.pn-t {
+  padding-top: 0;
+}
+.pn-t h3 {
+  line-height: 1.3;
+}
+/* The handle is always there (faint), so it's clear panels move; it darkens on hover. */
+.pn-grip {
+  width: 28px;
+  height: 32px;
+  opacity: 0.55;
+  transition:
+    opacity 0.12s,
+    background 0.12s;
+}
+.pn-grip:focus-visible {
+  opacity: 1;
+}
+@media (hover: hover) and (pointer: fine) {
+  .pn:hover .pn-grip {
+    opacity: 1;
+  }
+}
+.pn-overlay .pn-grip {
+  opacity: 1;
+  color: var(--ink);
+}
+.pn-sub {
+  margin-top: 4px;
+}
+/* Width and hide sit on the right and appear on hover (always on touch screens). */
+.pn-tools {
+  align-self: flex-start;
+}
+/* While dragging: where the panel will land, and the panel itself lifted. */
+.pn-ph {
+  opacity: 1;
+  border: 1.5px dashed color-mix(in srgb, var(--accent) 55%, transparent);
+  background: color-mix(in srgb, var(--accent) 5%, var(--paper));
+  box-shadow: none;
+}
+.pn-ph > * {
+  visibility: hidden;
+}
+.pn-overlay {
+  box-shadow:
+    0 18px 40px -12px color-mix(in srgb, #000 30%, transparent),
+    0 0 0 1px color-mix(in srgb, var(--accent) 35%, transparent);
+  transform: rotate(0.4deg);
+}
+/* Segmented filters inside a panel: one quiet track with the choice raised, instead of a row of
+   separate pills. */
+.pn-actions .seg {
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--ink) 6%, transparent);
+}
+.pn-actions .seg button {
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  padding: 4px 11px;
+  font-size: 12.5px;
+  font-weight: 600;
+  border-radius: 999px;
+}
+@media (hover: hover) and (pointer: fine) {
+  .pn-actions .seg button:hover {
+    color: var(--ink);
+    background: transparent;
+  }
+}
+.pn-actions .seg button.on {
+  background: var(--paper);
+  color: var(--ink);
+  box-shadow:
+    0 1px 2px color-mix(in srgb, #000 16%, transparent),
+    0 0 0 1px color-mix(in srgb, var(--ink) 8%, transparent);
+}
+/* Dark: the raised choice is lighter than the track, not darker. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) .pn-actions .seg button.on {
+    background: color-mix(in srgb, var(--ink) 18%, var(--paper));
+  }
+}
+:root[data-theme='dark'] .pn-actions .seg button.on {
+  background: color-mix(in srgb, var(--ink) 18%, var(--paper));
+}
+/* Filter choices wrap when a panel is narrow (every choice stays visible); the track turns
+   from a pill into a rounded box. */
+.pn .pn-actions .seg {
+  flex-wrap: wrap;
+  overflow: visible;
+  max-width: 100%;
+  border-radius: 16px;
+}
+.pn .pn-actions .seg button {
+  flex: none;
+  white-space: nowrap;
+}
+/* The calendar sits centred in its panel. */
+.pn .chart-box:has(> .heat) {
+  display: flex;
+  justify-content: center;
+}

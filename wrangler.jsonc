@@ -1,0 +1,56 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "my-nitrogen",
+  "main": "./src/worker/index.ts",
+  "compatibility_date": "2026-10-19",
+  // Needed for OAuth clients that identify themselves with a metadata URL.
+  "compatibility_flags": ["global_fetch_strictly_public"],
+  "observability": { "enabled": true },
+  "upload_source_maps": true,
+  "assets": {
+    // Static SPA. Unknown paths fall back to index.html; API, images and MCP always reach the Worker.
+    "not_found_handling": "single-page-application",
+    "run_worker_first": [
+      "/api/*",
+      "/files/*",
+      "/u/*",
+      "/mcp",
+      "/mcp/*",
+      "/authorize",
+      "/oauth/*",
+      "/.well-known/*",
+    ],
+  },
+  "d1_databases": [
+    {
+      // No database_id: the Deploy button and `wrangler deploy` provision it automatically.
+      "binding": "DB",
+      "database_name": "my-nitrogen",
+      "migrations_dir": "migrations","database_id": "e8a2eec2-4497-4659-83e5-215910fb0f7e",
+    },
+  ],
+  "r2_buckets": [
+    {
+      // Images added to pages. No bucket_name: provisioned automatically on deploy.
+      "binding": "FILES","bucket_name": "my-nitrogen","preview_bucket_name": "my-nitrogen",
+    },
+  ],
+  "kv_namespaces": [
+    {
+      // Sign-ins for AI assistants connected over MCP. Provisioned automatically on deploy.
+      "binding": "OAUTH_KV","id": "65cc1216eee8438fba107c94f9bcc6c5",
+    },
+  ],
+  // Semantic search. Every account has a "default" namespace, so nothing is provisioned at deploy;
+  // the Worker creates its own instance (SEARCH_INSTANCE) the first time it indexes a page.
+  // AI Search does not run locally: in `npm run dev` search falls back to keyword search.
+  "ai_search_namespaces": [{ "binding": "AI_SEARCH", "namespace": "default" }],
+  "vars": {
+    "SEARCH_INSTANCE": "my-nitrogen",
+    // "off" skips AI Search entirely (keyword search only). Local dev and tests set it to "off".
+    "SEMANTIC_SEARCH": "on",
+  },
+  // Retries semantic indexing for pages whose last attempt failed, and sends notifications (each at
+  // most once a day per device; the kit's sent log dedupes the 15-minute runs).
+  "triggers": { "crons": ["*/15 * * * *"] },
+}
