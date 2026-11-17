@@ -1,6 +1,6 @@
 // One open item as a row you can act on: check off a to-do or question, answer a question, or edit
 // (type, text, date, time) and delete it from the buttons at the end of its first row. Used on the
-// Open items page and in a page's own Open items box; each change edits that item in its page.
+// Open Items page and in a page's own Open Items box; each change edits that item in its page.
 import { useState } from 'react';
 import { Link } from 'react-router';
 import { ITEM_LABELS, dateWords, isOverdue, type ItemEdit } from '@shared/items';
@@ -20,7 +20,7 @@ export function ItemRow({
   showPage = true,
 }: {
   item: OpenItem;
-  /** The page's name after the item (off inside the page's own Open items box). */
+  /** The page's name after the item (off inside the page's own Open Items box). */
   showPage?: boolean;
   today: string;
   onDone(done: boolean): void;
@@ -32,7 +32,7 @@ export function ItemRow({
   const late = isOverdue(i, today);
   const question = i.type === 'question';
   const reminder = i.type === 'reminder';
-  const dated = !question && !!i.due;
+  const dated = !!i.due;
 
   return (
     <li className={`item-row item-${i.type}${i.done ? ' is-done' : ''}`}>
@@ -112,21 +112,21 @@ export function ItemRow({
             {i.owner && <span className="muted">@{i.owner}</span>}
           </div>
         )}
-        {editing && (
-          <ItemEditor
-            item={i}
-            onCancel={() => setEditing(false)}
-            onSave={async (edit) => {
-              await onEdit(edit);
-              setEditing(false);
-            }}
-          />
-        )}
         {question && (
           <AnswerBox answer={i.answer} onAnswer={i.done && !i.answer ? undefined : onAnswer} />
         )}
       </div>
       <ItemActions onEdit={() => setEditing((e) => !e)} onDelete={onDelete} />
+      {editing && (
+        <ItemEditor
+          item={i}
+          onCancel={() => setEditing(false)}
+          onSave={async (edit) => {
+            await onEdit(edit);
+            setEditing(false);
+          }}
+        />
+      )}
     </li>
   );
 }

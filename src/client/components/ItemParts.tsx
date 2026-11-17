@@ -1,7 +1,7 @@
-// The pieces every open item shares, wherever it's shown (in the page, the page's Open items box,
-// the Open items view): its edit and delete buttons, the editor behind the pencil, and a
+// The pieces every open item shares, wherever it's shown (in the page, the page's Open Items box,
+// the Open Items view): its edit and delete buttons, the editor behind the pencil, and a
 // question's answer.
-import { useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { ITEM_LABELS, ITEM_TYPES, type ItemEdit, type ItemType } from '@shared/items';
 import { useTitleIndex } from '../lib/titles';
 import { DatePicker, TimePicker } from './DateTimePicker';
@@ -45,8 +45,8 @@ export function ItemActions({ onEdit, onDelete }: { onEdit?(): void; onDelete?()
 }
 
 /**
- * Behind the pencil: change the item's type, its text, and (for to-dos and reminders) its date and
- * time. A to-do's date is optional; a reminder must have one; questions have none.
+ * Behind the pencil: change the item's type, its text, and its date and time. A to-do's or
+ * question's date is optional (when it should be done or answered by); a reminder must have one.
  */
 export function ItemEditor({
   item,
@@ -62,7 +62,13 @@ export function ItemEditor({
   const [due, setDue] = useState<string | null>(item.due);
   const [time, setTime] = useState(item.due_time ?? '');
   const [busy, setBusy] = useState(false);
-  const dated = type !== 'question';
+  const textBox = useRef<HTMLTextAreaElement>(null);
+  useLayoutEffect(() => {
+    const el = textBox.current;
+    if (!el) return;
+    el.style.height = 'auto';
+    el.style.height = `${el.scrollHeight}px`;
+  }, [text]);
   // A reminder always has a date: switching to one starts it on today.
   const date = type === 'reminder' ? (due ?? today()) : due;
   const save = async () => {
@@ -71,8 +77,8 @@ export function ItemEditor({
     await onSave({
       type,
       text,
-      due: dated ? date : null,
-      time: dated && date && time ? time : null,
+      due: date,
+      time: date && time ? time : null,
     });
     setBusy(false);
   };
@@ -85,51 +91,46 @@ export function ItemEditor({
       }}
       onKeyDown={(e) => e.key === 'Escape' && onCancel()}
     >
-      <div className="seg item-editor-types" role="radiogroup" aria-label="Type">
-        {ITEM_TYPES.map((t) => (
-          <button
-            key={t}
-            type="button"
-            role="radio"
-            aria-checked={type === t}
-            className={`item-${t}${type === t ? ' on' : ''}`}
-            onClick={() => setType(t)}
-          >
-            {ITEM_LABELS[t]}
-          </button>
-        ))}
-      </div>
-      <input
+      <TypePicker value={type} onChange={setType} />
+      {/* One line in the page, but it wraps here so it's all in view; Enter saves. */}
+      <textarea
+        ref={textBox}
         className="item-editor-text"
+        rows={1}
         value={text}
-        onChange={(e) => setText(e.target.value)}
+        onChange={(e) => setText(e.target.value.replace(/\n/g, ' '))}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            void save();
+          }
+        }}
+        enterKeyHint="done"
         aria-label="Text"
         placeholder="What is it?"
         autoFocus
       />
-      {dated && (
-        <div className="item-editor-when">
-          {date ? (
-            <>
-              <DatePicker
-                value={date}
-                onChange={setDue}
-                label={type === 'reminder' ? 'Scheduled for' : 'Due date'}
-              />
-              <TimePicker value={time} onChange={setTime} label="Time (optional)" />
-              {type === 'todo' && (
-                <button type="button" className="btn small" onClick={() => setDue(null)}>
-                  No date
-                </button>
-              )}
-            </>
-          ) : (
-            <button type="button" className="btn small" onClick={() => setDue(today())}>
-              <Icon name="calendar" size={13} /> Add a date
-            </button>
-          )}
-        </div>
-      )}
+      <div className="item-editor-when">
+        {date ? (
+          <>
+            <DatePicker
+              value={date}
+              onChange={setDue}
+              label={type === 'reminder' ? 'Scheduled for' : 'Due date'}
+            />
+            <TimePicker value={time} onChange={setTime} label="Time (optional)" />
+            {type !== 'reminder' && (
+              <button type="button" className="btn small" onClick={() => setDue(null)}>
+                No date
+              </button>
+            )}
+          </>
+        ) : (
+          <button type="button" className="btn small" onClick={() => setDue(today())}>
+            <Icon name="calendar" size={13} /> Add a date
+          </button>
+        )}
+      </div>
       <div className="item-editor-foot">
         <button className="btn small primary" disabled={busy || !text.trim()}>
           Save
@@ -139,6 +140,77 @@ export function ItemEditor({
         </button>
       </div>
     </form>
+  );
+}
+
+/** The item's type: a pill in its colour that opens a small themed list of the three. */
+function TypePicker({ value, onChange }: { value: ItemType; onChange(t: ItemType): void }) {
+  const [open, setOpen] = useState(false);
+  const box = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!open) return;
+    const away = (e: PointerEvent) => {
+      if (!box.current?.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener('pointerdown', away);
+    return () => document.removeEventListener('pointerdown', away);
+  }, [open]);
+  const pick = (t: ItemType) => {
+    onChange(t);
+    setOpen(false);
+    box.current?.querySelector<HTMLButtonElement>('.item-type-btn')?.focus();
+  };
+  return (
+    <div
+      ref={box}
+      className="item-type-picker"
+      onKeyDown={(e) => {
+        if (e.key === 'Escape' && open) {
+          // Close the list, not the whole editor.
+          e.stopPropagation();
+          setOpen(false);
+        } else if (open && (e.key === 'ArrowDown' || e.key === 'ArrowUp')) {
+          e.preventDefault();
+          const opts = [
+            ...(box.current?.querySelectorAll<HTMLButtonElement>('[role=option]') ?? []),
+          ];
+          const at = opts.indexOf(document.activeElement as HTMLButtonElement);
+          const next = e.key === 'ArrowDown' ? at + 1 : at - 1;
+          opts[(next + opts.length) % opts.length]?.focus();
+        }
+      }}
+    >
+      <button
+        type="button"
+        className={`item-type-btn item-${value}`}
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        aria-label={`Type: ${ITEM_LABELS[value]}`}
+        onClick={() => setOpen((o) => !o)}
+      >
+        {ITEM_LABELS[value]}
+        <Icon name="chevron" size={14} />
+      </button>
+      {open && (
+        <div className="menu item-type-menu" role="listbox" aria-label="Type">
+          {ITEM_TYPES.map((t) => (
+            <button
+              key={t}
+              type="button"
+              role="option"
+              aria-selected={t === value}
+              className={`item-${t}`}
+              autoFocus={t === value}
+              onClick={() => pick(t)}
+            >
+              <span className="item-type-dot" aria-hidden />
+              {ITEM_LABELS[t]}
+              {t === value && <Icon name="check" size={14} />}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
 
