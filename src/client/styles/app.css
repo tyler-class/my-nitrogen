@@ -7498,3 +7498,50 @@ html {
     font-size: 13px;
   }
 }
+
+/* Pages heading: "+" in a small shaded circle right beside it (new page); Expand all / Collapse
+   all at the far right. */
+.tree-head {
+  justify-content: flex-start;
+  gap: 8px;
+}
+.tree-head .tree-add {
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--ink) 9%, transparent);
+  color: var(--ink);
+}
+@media (hover: hover) and (pointer: fine) {
+  .tree-head .tree-add:hover {
+    background: color-mix(in srgb, var(--accent) 18%, transparent);
+    color: var(--accent-ink);
+  }
+}
+.tree-head .tree-all {
+  margin: 0 0 0 auto;
+}
+@media (max-width: 860px) {
+  .tree-head .tree-add {
+    width: 28px;
+    height: 28px;
+  }
+}
+
+/* Phones: the sidebar's footer (Tags, Insights…) is a real footer, flush with the bottom of the
+   slide-over, full width with a divider; the home-bar space is added once, below its icons
+   (the sidebar itself no longer pads its bottom, which doubled it). */
+@media (max-width: 860px) {
+  .sidebar,
+  .shell.collapsed .sidebar {
+    padding-bottom: 0;
+  }
+  .sidebar-foot.shelf {
+    margin: auto -14px 0;
+    padding: 8px 14px max(8px, env(safe-area-inset-bottom));
+    border-top: 1px solid var(--hairline);
+    border-radius: 0 0 18px 0;
+    background: var(--paper);
+  }
+}
