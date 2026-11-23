@@ -8,7 +8,7 @@ name: Update Nitrogen
 
 on:
   schedule:
-    - cron: '23 9 * * 1' # Mondays
+    - cron: '23 5,11,17,23 * * *'
   # "Update now" in Nitrogen's Settings opens this workflow's Run button.
   workflow_dispatch:
   # Adding (or changing) this file runs it once straight away.
